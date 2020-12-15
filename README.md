@@ -7,7 +7,7 @@ Create new flyway scripts under `src/main/migration` and open them in VsCode wit
 Install Go, then run:
 
 ```bash
-go install github.com/setlog/fly
+go get github.com/setlog/fly
 ```
 
 ### Usage
