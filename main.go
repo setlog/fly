@@ -47,12 +47,12 @@ func nextFlywayScriptVersion(folderPath string) (major, minor int) {
 	return largestMajor, largestMinor + 1
 }
 
-func getFlywayScriptVersion(filePath string) (major, minor int, err error) {
+func getFlywayScriptVersion(fileName string) (major, minor int, err error) {
 	r := regexp.MustCompile(`^(V|v)([0-9]+)\.([0-9]+)__.+\.sql$`)
-	if !r.Match([]byte(filePath)) {
+	if !r.Match([]byte(fileName)) {
 		return 0, 0, fmt.Errorf("regexp mismatch")
 	}
-	versions := regexp.MustCompile("[0-9]+").FindAllString(filePath, 2)
+	versions := regexp.MustCompile("[0-9]+").FindAllString(fileName, 2)
 	return atoi(versions[0]), atoi(versions[1]), nil
 }
 
