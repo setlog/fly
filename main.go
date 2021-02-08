@@ -30,10 +30,11 @@ func nextFlywayScriptPrefix(folderPath string, incrementMethod flags.VersionIncr
 }
 
 func extractSchemaName(scriptPrefix string) string {
-	if strings.Index(scriptPrefix, "_admin") == 3 {
+	adminIndex := strings.Index(scriptPrefix, "_admin")
+	if adminIndex == 3 {
 		return "schema_admin"
 	}
-	if strings.HasSuffix(scriptPrefix, "_admin") {
+	if adminIndex > 3 {
 		return "schema_client_admin"
 	}
 	return "schema_client"
