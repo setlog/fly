@@ -17,4 +17,4 @@ fly # creates src/main/migration/VXXX.XXX__migration.sql
 fly my_change # creates src/main/migration/VXXX.XXX__my_change.sql
 ```
 
-The file is then opened in VsCode if you have it installed.
+The file is then opened in VsCode if you have it installed, i.e. `code` is in your `PATH`.
