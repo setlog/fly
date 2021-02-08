@@ -30,11 +30,10 @@ func nextFlywayScriptPrefix(folderPath string, incrementMethod flags.VersionIncr
 }
 
 func extractSchemaName(scriptPrefix string) string {
-	adminIndex := strings.Index(scriptPrefix, "_admin")
-	if adminIndex == 3 {
+	if strings.Index(scriptPrefix, "_admin") == 3 {
 		return "schema_admin"
 	}
-	if adminIndex > 3 {
+	if strings.HasSuffix(scriptPrefix, "_admin") {
 		return "schema_client_admin"
 	}
 	return "schema_client"
@@ -52,7 +51,7 @@ func nextFlywayScriptVersion(folderPath string, incrementMethod flags.VersionInc
 		return incrementFlywayScriptVersion("000", "000", incrementMinor)
 	}
 	major, minor, _ = getFlywayScriptVersion(latestScriptFileName)
-	return incrementFlywayScriptVersion(major, minor, wasMinorIncrement)
+	return incrementFlywayScriptVersion(major, minor, incrementMinor)
 }
 
 func latestFlywayScriptFileName(folderPath string) (scriptFileName string, wasMinorIncrement bool) {
@@ -91,7 +90,7 @@ func incrementFlywayScriptVersion(major, minor string, incrementMinor bool) (new
 	if incrementMinor {
 		return major, fmt.Sprintf(fmt.Sprintf("%%0%dd", len(minor)), atoi(minor)+1)
 	}
-	return fmt.Sprintf(fmt.Sprintf("%%0%dd", len(major)), atoi(major)+1), fmt.Sprintf(fmt.Sprintf("%%%d0d", len(minor)), 1)
+	return fmt.Sprintf(fmt.Sprintf("%%0%dd", len(major)), atoi(major)+1), fmt.Sprintf(fmt.Sprintf("%%0%dd", len(minor)), 1)
 }
 
 func atoi(s string) int {
