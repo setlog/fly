@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const FlagMajor = "major"
@@ -45,6 +46,9 @@ func Parse(args []string) *Flags {
 	}
 	if fs.NArg() == 1 {
 		f.ScriptPrefix = fs.Arg(0)
+		if strings.HasSuffix(f.ScriptPrefix, ".sql") {
+			f.ScriptPrefix = f.ScriptPrefix[:len(f.ScriptPrefix)-4]
+		}
 	} else {
 		f.ScriptPrefix = "migration"
 	}
