@@ -19,14 +19,33 @@ func main() {
 	defer panik.ExitTraceTo(os.Stderr)
 	f := flags.Parse(os.Args[1:])
 	panik.OnError(os.MkdirAll(filepath.FromSlash("src/main/migration"), 0700))
-	scriptFilePath := filepath.FromSlash(path.Join("src/main/migration", nextFlywayScriptPrefix("src/main/migration", f.VersionIncrementMethod)+f.ScriptPrefix+".sql"))
+	scriptFilePath := filepath.FromSlash(path.Join("src/main/migration", nextFlywayScriptName("src/main/migration", f.VersionIncrementMethod, f.ScriptPrefix+".sql")))
 	panik.OnError(ioutil.WriteFile(scriptFilePath, []byte("USE ${"+extractSchemaName(f.ScriptPrefix)+"};\n\n\n"), 0600))
 	openInVsCode(scriptFilePath)
 }
 
-func nextFlywayScriptPrefix(folderPath string, incrementMethod flags.VersionIncrementMethod) string {
-	major, minor := nextFlywayScriptVersion(folderPath, incrementMethod)
-	return fmt.Sprintf("V%s.%s__", major, minor)
+func nextFlywayScriptName(folderPath string, incrementMethod flags.VersionIncrementMethod, append string) string {
+	var major, minor string
+	previousScriptFileName, wasMinorIncrement := latestFlywayScriptFileName(folderPath)
+	if incrementMethod == flags.IncrementAsk {
+		major, minor = nextFlywayScriptVersion(previousScriptFileName, wasMinorIncrement, flags.IncrementMajor)
+		option1 := fmt.Sprintf("V%s.%s__%s", major, minor, append)
+		major, minor = nextFlywayScriptVersion(previousScriptFileName, wasMinorIncrement, flags.IncrementMinor)
+		option2 := fmt.Sprintf("V%s.%s__%s", major, minor, append)
+		options := []string{
+			option1, option2,
+		}
+		var title string
+		if previousScriptFileName != "" {
+			title = fmt.Sprintf("Choose new file name to follow %s:", previousScriptFileName)
+		} else {
+			title = "Choose name for first script file:"
+		}
+		return options[selectOption(title, options)]
+	} else {
+		major, minor = nextFlywayScriptVersion(previousScriptFileName, wasMinorIncrement, incrementMethod)
+		return fmt.Sprintf("V%s.%s__%s", major, minor, append)
+	}
 }
 
 func extractSchemaName(scriptPrefix string) string {
@@ -40,19 +59,18 @@ func extractSchemaName(scriptPrefix string) string {
 	return "schema_client"
 }
 
-func nextFlywayScriptVersion(folderPath string, incrementMethod flags.VersionIncrementMethod) (major, minor string) {
-	latestScriptFileName, wasMinorIncrement := latestFlywayScriptFileName(folderPath)
+func nextFlywayScriptVersion(previousScriptFileName string, wasMinorIncrement bool, incrementMethod flags.VersionIncrementMethod) (major, minor string) {
 	incrementMinor := wasMinorIncrement
 	if incrementMethod == flags.IncrementMajor {
 		incrementMinor = false
 	} else if incrementMethod == flags.IncrementMinor {
 		incrementMinor = true
 	}
-	if latestScriptFileName == "" {
+	if previousScriptFileName == "" {
 		return incrementFlywayScriptVersion("000", "000", incrementMinor)
 	}
-	major, minor, _ = getFlywayScriptVersion(latestScriptFileName)
-	return incrementFlywayScriptVersion(major, minor, incrementMinor)
+	prevMajor, prevMinor, _ := getFlywayScriptVersion(previousScriptFileName)
+	return incrementFlywayScriptVersion(prevMajor, prevMinor, incrementMinor)
 }
 
 func latestFlywayScriptFileName(folderPath string) (scriptFileName string, wasMinorIncrement bool) {

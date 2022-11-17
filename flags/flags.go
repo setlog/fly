@@ -21,6 +21,7 @@ type VersionIncrementMethod int
 const IncrementMajor VersionIncrementMethod = 0
 const IncrementMinor VersionIncrementMethod = 1
 const IncrementAuto VersionIncrementMethod = 2
+const IncrementAsk VersionIncrementMethod = 3
 
 func Parse(args []string) *Flags {
 	f := Flags{}
@@ -29,7 +30,7 @@ func Parse(args []string) *Flags {
 	var major, minor, auto bool
 	fs.BoolVar(&major, FlagMajor, false, "make a major version increment")
 	fs.BoolVar(&minor, FlagMinor, false, "make a minor version increment")
-	fs.BoolVar(&auto, FlagAuto, false, "automatically decide how to increment version (default)")
+	fs.BoolVar(&auto, FlagAuto, false, "automatically decide how to increment version")
 	fs.Parse(args)
 	if auto && (major || minor) {
 		fmt.Println("Explicit --auto disallows usage of --major and --minor.")
@@ -62,5 +63,8 @@ func readVersionIncrementMethod(major, minor, auto bool) VersionIncrementMethod 
 	if minor {
 		return IncrementMinor
 	}
-	return IncrementAuto
+	if auto {
+		return IncrementAuto
+	}
+	return IncrementAsk
 }
